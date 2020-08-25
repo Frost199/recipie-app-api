@@ -1,0 +1,13 @@
+[run]
+branch = True
+omit =
+    # omit anything in a .local directory anywhere
+    */.local/*
+    # omit everything in /usr
+    /usr/*
+    ./manage.py
+    ./app/*
+    ./core/migrations/*
+    ./core/tests/*
+    ../venv/*
+    ./libs/*
