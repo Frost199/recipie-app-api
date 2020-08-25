@@ -10,6 +10,8 @@ from django.db import models
 from django.contrib.auth.models import (AbstractBaseUser,
                                         BaseUserManager,
                                         PermissionsMixin)
+
+
 # custom imports
 # from app.libs.strings import get_text
 
@@ -34,7 +36,8 @@ class UserManager(BaseUserManager):
         if not email:
             # raise ValueError(get_text("user_no_email"))
             raise ValueError("User must have an email address")
-        user = self.model(email=self.normalize_email(email), **extra_fields)
+        user = self.model(email=self.normalize_email(email),
+                          **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user

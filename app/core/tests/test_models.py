@@ -32,7 +32,8 @@ class ModelTest(TestCase):
 
         """
         email = 'don.joe@EXAMPLE.COM'
-        user = get_user_model().objects.create_user(email, 'qwerty  uiop12')
+        user = get_user_model().objects.create_user(email,
+                                                    'qwerty  uiop12')
 
         self.assertEqual(user.email, email.lower())
 
