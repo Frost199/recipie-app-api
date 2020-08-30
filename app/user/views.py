@@ -1,3 +1,6 @@
+"""
+Views for User
+"""
 from rest_framework import generics
 
 from .serializer import UserSerializer
