@@ -6,14 +6,8 @@ from core.migrations.Helper.helper import create_fields
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('core', '0002_auto_20200825_1452'),
     ]
 
-    operations = [
-        migrations.CreateModel(
-            name='Tag',
-            fields=create_fields(),
-        ),
-    ]
+    operations = [create_fields('Tag')]
