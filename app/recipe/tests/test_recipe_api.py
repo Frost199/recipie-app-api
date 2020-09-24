@@ -149,6 +149,22 @@ class PrivateRecipeApiTest(TestCase):
         for key in payload.keys():
             self.assertEqual(payload[key], getattr(recipe, key))
 
+    def evaluate_recipe(self, ingredient_or_tag1, ingredient_or_tag2,
+                        payload, ingredient_or_tag_model_identifier):
+        """
+        Helper function to evaluate either Ingredient or Recipe
+        """
+        res = self.client.post(RECIPES_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        obj = Recipe.objects.get(id=res.data['id'])
+        if ingredient_or_tag_model_identifier == 'tag':
+            ingredients_or_tags = obj.tags.all()
+        else:
+            ingredients_or_tags = obj.ingredients.all()
+        self.assertEqual(ingredients_or_tags.count(), 2)
+        self.assertIn(ingredient_or_tag1, ingredients_or_tags)
+        self.assertIn(ingredient_or_tag2, ingredients_or_tags)
+
     def test_creating_recipe_with_tags(self):
         """
         Test Creating a recipe with Tags
@@ -181,18 +197,43 @@ class PrivateRecipeApiTest(TestCase):
         }
         self.evaluate_recipe(ingredient1, ingredient2, payload, 'ingredient')
 
-    def evaluate_recipe(self, ingredient_or_tag1, ingredient_or_tag2,
-                        payload, ingredient_or_tag_model_identifier):
+    def test_partial_update_recipe(self):
         """
-        Helper function to evaluate either Ingredient or Recipe
+        Test Updating a recipe wih PATCH
         """
-        res = self.client.post(RECIPES_URL, payload)
-        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
-        obj = Recipe.objects.get(id=res.data['id'])
-        if ingredient_or_tag_model_identifier == 'tag':
-            ingredients_or_tags = obj.tags.all()
-        else:
-            ingredients_or_tags = obj.ingredients.all()
-        self.assertEqual(ingredients_or_tags.count(), 2)
-        self.assertIn(ingredient_or_tag1, ingredients_or_tags)
-        self.assertIn(ingredient_or_tag2, ingredients_or_tags)
+        recipe = sample_recipe(user=self.user)
+        recipe.tags.add(sample_tags(user=self.user))
+        new_tag = sample_tags(user=self.user, name='Cabbage')
+
+        payload = {'title': 'Salad', 'tags': [new_tag.id]}
+        url = detail_url(recipe_id=recipe.id)
+        self.client.patch(url, payload)
+
+        recipe.refresh_from_db()
+        self.assertEqual(recipe.title, payload['title'])
+        tags = recipe.tags.all()
+        self.assertEqual(len(tags), 1)
+        self.assertIn(new_tag, tags)
+
+    def test_full_update_recipe(self):
+        """
+        Test Updating a Recipe with PUT
+        """
+        recipe = sample_recipe(user=self.user)
+        recipe.tags.add(sample_tags(user=self.user))
+        payload = {
+            'title': 'Jollof Spaghetti',
+            'time_minutes': 30,
+            'price': 5.00,
+            'currency': 'USD',
+        }
+        url = detail_url(recipe_id=recipe.id)
+        self.client.put(url, payload)
+
+        recipe.refresh_from_db()
+        self.assertEqual(recipe.title, payload['title'])
+        self.assertEqual(recipe.time_minutes, payload['time_minutes'])
+        self.assertEqual(recipe.price, payload['price'])
+        self.assertEqual(recipe.currency, payload['currency'])
+        tags = recipe.tags.all()
+        self.assertEqual(len(tags), 0)
